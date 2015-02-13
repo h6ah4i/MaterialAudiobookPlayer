@@ -5,7 +5,8 @@ android {
     buildToolsVersion '21.1.2'
 
     defaultConfig {
-        minSdkVersion 11
+//        minSdkVersion 11 // todo requires develop branch version of OpenSLMediaPlayer
+        minSdkVersion 14
         targetSdkVersion 21
         versionCode 29
         versionName '1.5.4-rc1'
@@ -68,4 +69,5 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.2.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.2.0'
     compile 'com.squareup.picasso:picasso:2.4.0'
+    compile 'com.h6ah4i.android:openslmediaplayer:0.5.0'
 }

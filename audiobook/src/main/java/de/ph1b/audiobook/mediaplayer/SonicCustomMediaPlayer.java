@@ -32,9 +32,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import de.ph1b.audiobook.utils.L;
 
 @TargetApi(16)
-public class CustomMediaPlayer {
+public class SonicCustomMediaPlayer implements ICustomMediaPlayer {
     private final static int TRACK_NUM = 0;
-    private static final String TAG = CustomMediaPlayer.class.getSimpleName();
+    private static final String TAG = SonicCustomMediaPlayer.class.getSimpleName();
     private final ReentrantLock lock = new ReentrantLock();
     private final Object mDecoderLock;
     private final float pitch;
@@ -52,7 +52,7 @@ public class CustomMediaPlayer {
     private State state;
     private long duration;
 
-    public CustomMediaPlayer(Context context) {
+    public SonicCustomMediaPlayer(Context context) {
         L.v(TAG, "constructor called");
         state = State.IDLE;
         speed = (float) 1.0;
@@ -63,14 +63,16 @@ public class CustomMediaPlayer {
         mDecoderLock = new Object();
 
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, CustomMediaPlayer.class.getName());
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, SonicCustomMediaPlayer.class.getName());
         wakeLock.setReferenceCounted(false);
     }
 
+    @Override
     public void setOnCompletionListener(OnCompletionListener listener) {
         this.onCompletionListener = listener;
     }
 
+    @Override
     public int getCurrentPosition() {
         switch (state) {
             case ERROR:
@@ -82,6 +84,7 @@ public class CustomMediaPlayer {
         return 0;
     }
 
+    @Override
     public int getDuration() {
         switch (state) {
             case INITIALIZED:
@@ -95,10 +98,12 @@ public class CustomMediaPlayer {
         return 0;
     }
 
+    @Override
     public void setPlaybackSpeed(float speed) {
         this.speed = speed;
     }
 
+    @Override
     public void pause() {
         L.v(TAG, "pause called");
         switch (state) {
@@ -126,6 +131,7 @@ public class CustomMediaPlayer {
         L.e(TAG, "Called " + methodName + " in state=" + oldState);
     }
 
+    @Override
     public void prepare() throws IOException {
         L.v(TAG, "prepare called in state: " + state);
         switch (state) {
@@ -140,6 +146,7 @@ public class CustomMediaPlayer {
         }
     }
 
+    @Override
     public void start() {
         L.v(TAG, "start called in state:" + state);
         switch (state) {
@@ -182,6 +189,7 @@ public class CustomMediaPlayer {
         }
     }
 
+    @Override
     public void release() {
         L.v(TAG, "release called in state:" + state);
         reset(); //reset will release wakelock
@@ -190,6 +198,7 @@ public class CustomMediaPlayer {
         L.d(TAG, "State changed to: " + state);
     }
 
+    @Override
     public void reset() {
         L.v(TAG, "reste called in state: " + state);
         stayAwake(false);
@@ -225,6 +234,7 @@ public class CustomMediaPlayer {
         lock.unlock();
     }
 
+    @Override
     public void seekTo(final int ms) {
         switch (state) {
             case PREPARED:
@@ -252,6 +262,7 @@ public class CustomMediaPlayer {
         }
     }
 
+    @Override
     public void setDataSource(String path) {
         L.d(TAG, "setDataSource: " + path);
         switch (state) {
@@ -433,19 +444,4 @@ public class CustomMediaPlayer {
         decoderThread.start();
     }
 
-    private enum State {
-        IDLE,
-        ERROR,
-        INITIALIZED,
-        STARTED,
-        PAUSED,
-        PREPARED,
-        STOPPED,
-        PLAYBACK_COMPLETED,
-        END
-    }
-
-    public interface OnCompletionListener {
-        public void onCompletion();
-    }
 }

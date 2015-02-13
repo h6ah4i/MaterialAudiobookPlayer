@@ -21,6 +21,9 @@ import android.telephony.TelephonyManager;
 import android.view.KeyEvent;
 import android.widget.RemoteViews;
 
+import com.h6ah4i.android.media.IMediaPlayerFactory;
+import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerFactory;
+import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -55,6 +58,7 @@ public class AudioPlayerService extends Service implements StateManager.ChangeLi
     private RemoteControlClient remoteControlClient = null;
     private volatile boolean pauseBecauseLossTransient = false;
     private volatile boolean pauseBecauseHeadset = false;
+    private IMediaPlayerFactory mediaPlayerFactory;
 
     private final BroadcastReceiver audioBecomingNoisyReceiver = new BroadcastReceiver() {
         @Override
@@ -90,6 +94,16 @@ public class AudioPlayerService extends Service implements StateManager.ChangeLi
     @Override
     public void onCreate() {
         super.onCreate();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            // OpenSL
+            mediaPlayerFactory = new OpenSLMediaPlayerFactory(getApplicationContext());
+        } else {
+            // Standard
+            mediaPlayerFactory = new StandardMediaPlayerFactory(getApplicationContext());
+        }
+        // or Sonic
+        // mediaPlayerFactory = null;
 
         prefs = new PrefsManager(this);
         db = DataBaseHelper.getInstance(this);
@@ -149,6 +163,10 @@ public class AudioPlayerService extends Service implements StateManager.ChangeLi
 
         if (controller != null) {
             controller.release();
+        }
+
+        if (mediaPlayerFactory != null) {
+            mediaPlayerFactory.release();
         }
 
         super.onDestroy();
@@ -246,7 +264,7 @@ public class AudioPlayerService extends Service implements StateManager.ChangeLi
             }
             Book book = db.getBook(defaultBookId);
             L.d(TAG, "init new book:" + book.getName());
-            controller = new MediaPlayerController(book, this);
+            controller = new MediaPlayerController(book, this, mediaPlayerFactory);
         }
 
         handleIntent(intent);

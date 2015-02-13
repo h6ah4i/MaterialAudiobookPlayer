@@ -4,19 +4,25 @@ package de.ph1b.audiobook.mediaplayer;
 import android.content.Context;
 import android.os.Build;
 
+import com.h6ah4i.android.media.IMediaPlayerFactory;
+
 import java.io.IOException;
 
 public class MediaPlayerCompat {
 
     private final boolean useCustomMediaPlayer;
     private android.media.MediaPlayer androidMediaPlayer;
-    private CustomMediaPlayer customCustomMediaPlayer;
+    private ICustomMediaPlayer customCustomMediaPlayer;
 
-    public MediaPlayerCompat(Context c) {
+    public MediaPlayerCompat(Context c, IMediaPlayerFactory factory) {
         useCustomMediaPlayer = (Build.VERSION.SDK_INT >= 16);
 
         if (useCustomMediaPlayer) {
-            customCustomMediaPlayer = new CustomMediaPlayer(c);
+            if (factory == null) {
+                customCustomMediaPlayer = new SonicCustomMediaPlayer(c);
+            } else {
+                customCustomMediaPlayer = new FactoryGeneratedCustomMediaPlayer(factory);
+            }
         } else {
             androidMediaPlayer = new android.media.MediaPlayer();
         }
@@ -62,7 +68,11 @@ public class MediaPlayerCompat {
 
     public void setDataSource(String path) {
         if (useCustomMediaPlayer) {
-            customCustomMediaPlayer.setDataSource(path);
+            try {
+                customCustomMediaPlayer.setDataSource(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else {
             try {
                 androidMediaPlayer.setDataSource(path);
@@ -82,7 +92,7 @@ public class MediaPlayerCompat {
 
     public void setOnCompletionListener(final OnCompletionListener listener) {
         if (useCustomMediaPlayer) {
-            customCustomMediaPlayer.setOnCompletionListener(new CustomMediaPlayer.OnCompletionListener() {
+            customCustomMediaPlayer.setOnCompletionListener(new SonicCustomMediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion() {
                     listener.onCompletion();

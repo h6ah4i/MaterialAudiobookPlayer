@@ -4,6 +4,8 @@ package de.ph1b.audiobook.mediaplayer;
 import android.content.Context;
 import android.os.PowerManager;
 
+import com.h6ah4i.android.media.IMediaPlayerFactory;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -46,7 +48,7 @@ public class MediaPlayerController {
     private ScheduledFuture<?> sleepSand;
     private volatile boolean stopAfterCurrentTrack = false;
 
-    public MediaPlayerController(Book book, Context c) {
+    public MediaPlayerController(Book book, Context c, IMediaPlayerFactory mediaPlayerFactory) {
         L.i(TAG, "new MediaPlayerController with book:" + book);
         this.book = book;
         this.c = c;
@@ -54,7 +56,7 @@ public class MediaPlayerController {
         prefs = new PrefsManager(c);
         db = DataBaseHelper.getInstance(c);
 
-        mediaPlayer = new MediaPlayerCompat(c);
+        mediaPlayer = new MediaPlayerCompat(c, mediaPlayerFactory);
         state = State.IDLE;
 
         prepare();
